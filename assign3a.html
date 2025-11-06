@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AstroMart — Mini E-Commerce Portal</title>
+  <style>
+    :root{
+      --bg1:#0f172a; --bg2:#0ea5e9; --card:#0b1220; --glass: rgba(255,255,255,0.04); --accent:#06b6d4;
+      --text:#e6eef8; --muted:#9fb5c8;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:linear-gradient(135deg,var(--bg1) 0%, #030615 40%, #020617 100%);color:var(--text);min-height:100vh}
+    header{backdrop-filter:blur(6px);background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:12px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+    .brand{display:flex;gap:12px;align-items:center}
+    .logo{width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,var(--bg2),#001219);display:flex;align-items:center;justify-content:center;font-weight:700;color:#001;}
+    nav ul{list-style:none;margin:0;padding:0;display:flex;gap:14px}
+    nav a{color:inherit;text-decoration:none;padding:8px 12px;border-radius:8px;font-weight:600;cursor:pointer}
+    nav a:hover{background:var(--glass)}
+    .actions{display:flex;gap:8px;align-items:center}
+    button{background:linear-gradient(90deg,var(--bg2),var(--accent));border:0;padding:8px 12px;border-radius:8px;color:#021124;font-weight:700;cursor:pointer}
+    main{padding:28px;max-width:1100px;margin:0 auto}
+    h1,h2{margin:6px 0}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));padding:14px;border-radius:12px;box-shadow:0 6px 18px rgba(1,8,24,0.6)}
+    .product-img{height:160px;background:linear-gradient(135deg,#083344,#041323);border-radius:8px;margin-bottom:8px;display:flex;align-items:center;justify-content:center}
+    .muted{color:var(--muted);font-size:0.95rem}
+    .small{font-size:0.88rem}
+    footer{padding:16px;text-align:center;color:var(--muted)}
+    /* forms & modal */
+    .modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(2,6,23,0.6);z-index:30;}
+    .modal-card{width:420px;background:linear-gradient(180deg,#071627, #03101a);padding:18px;border-radius:12px}
+    label{display:block;margin:6px 0 4px}
+    input,textarea,select{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+    .row{display:flex;gap:10px}
+    .hint{font-size:0.85rem;color:#b9d7e6}
+    .pill{display:inline-block;padding:6px 8px;background:rgba(255,255,255,0.02);border-radius:999px}
+    .empty{opacity:0.75;padding:18px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));}
+    .reviews{margin-top:8px}
+    .review{padding:10px;border-radius:8px;background:rgba(255,255,255,0.015);margin-bottom:8px}
+    .link{color:var(--bg2);text-decoration:underline;cursor:pointer}
+    pre.code {white-space:pre-wrap;word-break:break-word;background:#071018;padding:8px;border-radius:8px;color:#cfefff;overflow:auto}
+    @media (max-width:520px){.modal-card{width:92%}nav ul{display:none}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo">AL</div>
+      <div>
+        <div style="font-weight:800">AstroMart</div>
+        <div class="muted small">Mini E-Commerce Prototype</div>
+      </div>
+    </div>
+
+    <nav aria-label="Main navigation">
+      <ul id="menu">
+        <li><a data-section="home">Home</a></li>
+        <li><a data-section="products">Products</a></li>
+        <li><a data-section="orders">Orders</a></li>
+        <li><a data-section="wishlist">Wishlist</a></li>
+        <li><a data-section="contact">Contact Us</a></li>
+        <li><a data-section="about">About Us</a></li>
+      </ul>
+    </nav>
+
+    <div class="actions">
+      <span id="userGreeting" class="muted small"></span>
+      <button id="btn-login">Login / Register</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="home" class="section">
+      <div class="card">
+        <h1>Welcome to AstroMart</h1>
+        <p class="muted">A compact demo of an e-commerce portal featuring navigation, user auth with validation, orders, wishlist, reviews, customer care and reporting.</p>
+      </div>
+      <div style="height:18px"></div>
+      <div class="grid" id="featured"></div>
+    </section>
+
+    <section id="products" class="section" style="display:none">
+      <h2>Products</h2>
+      <div class="grid" id="productList"></div>
+    </section>
+
+    <section id="orders" class="section" style="display:none">
+      <h2>Your Orders</h2>
+      <div id="ordersList"></div>
+    </section>
+
+    <section id="wishlist" class="section" style="display:none">
+      <h2>Your Wishlist</h2>
+      <div id="wishlistList"></div>
+    </section>
+
+    <section id="contact" class="section" style="display:none">
+      <h2>Customer Care</h2>
+      <div class="card">
+        <form id="contactForm">
+          <label for="contactName">Name</label>
+          <input id="contactName" required />
+          <label for="contactEmail">Email</label>
+          <input id="contactEmail" type="email" required />
+          <label for="contactMsg">Message</label>
+          <textarea id="contactMsg" rows="4" required></textarea>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button type="submit">Send</button>
+            <div class="muted pill" id="contactStatus"></div>
+          </div>
+        </form>
+      </div>
+
+      <div style="height:18px"></div>
+      <h3>Report an issue</h3>
+      <div class="card">
+        <form id="reportForm">
+          <label>Type</label>
+          <select id="reportType"><option value="product">Product</option><option value="order">Order</option><option value="other">Other</option></select>
+          <label>Reference ID (order/product id)</label>
+          <input id="reportRef" />
+          <label>Details</label>
+          <textarea id="reportDetails" rows="3" required></textarea>
+          <div style="display:flex;gap:8px;margin-top:8px"><button type="submit">Report</button><div id="reportStatus" class="muted pill"></div></div>
+        </form>
+      </div>
+    </section>
+
+    <section id="about" class="section" style="display:none">
+      <h2>About Us</h2>
+      <div class="card">
+        <p>AstroMart — a demo portal built to show common e-commerce features for learning and demonstration purposes.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    Built as a single-file demo • Client-side only (uses browser localStorage). Open Login/Register to try features.
+  </footer>
+
+  <!-- Auth modal -->
+  <div id="authModal" class="modal" style="display:none" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <strong id="authTitle">Login</strong>
+        <button id="closeAuth" aria-label="Close auth modal">X</button>
+      </div>
+
+      <div id="authContent">
+        <!-- login form -->
+        <form id="loginForm">
+          <label for="loginEmail">Email</label>
+          <input id="loginEmail" type="email" required />
+          <label for="loginPassword">Password</label>
+          <input id="loginPassword" type="password" required />
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button type="submit">Login</button>
+            <button type="button" id="showRegister">Register</button>
+          </div>
+          <div id="loginError" class="muted hint" style="margin-top:8px"></div>
+        </form>
+
+        <!-- register form -->
+        <form id="registerForm" style="display:none">
+          <label for="regName">Full name</label>
+          <input id="regName" required />
+          <label for="regEmail">Email</label>
+          <input id="regEmail" type="email" required />
+          <label for="regPhone">Phone</label>
+          <input id="regPhone" required maxlength="15" />
+          <label for="regPassword">Password (min 6)</label>
+          <input id="regPassword" type="password" required />
+          <label for="regPassword2">Confirm password</label>
+          <input id="regPassword2" type="password" required />
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button type="submit">Create account</button>
+            <button type="button" id="showLogin">Back to login</button>
+          </div>
+          <div id="regError" class="muted hint" style="margin-top:8px"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* -------------------- Data & helpers -------------------- */
+const sampleProducts = [
+  {id:'P1001',title:'LunarPhone X',price:49999,desc:'Satellite-backed smartphone with global connectivity'},
+  {id:'P1002',title:'OrbitCam 4K',price:14999,desc:'Compact action camera with space-grade stabilization'},
+  {id:'P1003',title:'SolarPack 20W',price:2999,desc:'Portable solar charger for off-grid power'}
+];
+
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+
+function save(key,val){localStorage.setItem(key,JSON.stringify(val))}
+function load(key,def){try{const v=JSON.parse(localStorage.getItem(key));return v===null?def:v}catch(e){return def}}
+
+/* initialize localStorage datasets if missing */
+if(!load('products')) save('products', sampleProducts);
+if(!load('users')) save('users', []);
+if(!load('orders')) save('orders', []);
+if(!load('wishlist')) save('wishlist', {});
+if(!load('reviews')) save('reviews', {});
+
+/* -------------------- Navigation -------------------- */
+$('#menu').addEventListener('click', e=>{
+  const t = e.target;
+  if(t && t.dataset && t.dataset.section) showSection(t.dataset.section);
+});
+function showSection(name){
+  document.querySelectorAll('.section').forEach(s=>s.style.display='none');
+  const el = document.getElementById(name);
+  if(el) el.style.display='block';
+  window.scrollTo(0,0);
+}
+showSection('home');
+
+/* -------------------- Auth & validation -------------------- */
+$('#btn-login').addEventListener('click', ()=>openAuth('login'));
+$('#closeAuth').addEventListener('click', ()=>closeAuth());
+$('#showRegister').addEventListener('click', ()=>openAuth('register'));
+$('#showLogin').addEventListener('click', ()=>openAuth('login'));
+
+function openAuth(mode){
+  $('#authModal').style.display = 'flex';
+  $('#authModal').setAttribute('aria-hidden','false');
+  if(mode === 'login'){ $('#authTitle').textContent='Login'; $('#loginForm').style.display='block'; $('#registerForm').style.display='none'; }
+  else { $('#authTitle').textContent='Register'; $('#loginForm').style.display='none'; $('#registerForm').style.display='block'; }
+}
+function closeAuth(){
+  $('#authModal').style.display = 'none';
+  $('#authModal').setAttribute('aria-hidden','true');
+}
+
+/* Validation helpers */
+function validEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) }
+function validPhone(v){ return /^\+?[0-9]{7,15}$/.test(v) }
+
+/* Register */
+$('#registerForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  const name = $('#regName').value.trim();
+  const email = $('#regEmail').value.trim().toLowerCase();
+  const phone = $('#regPhone').value.trim();
+  const pass = $('#regPassword').value;
+  const pass2 = $('#regPassword2').value;
+  const users = load('users', []);
+  const err = $('#regError'); err.textContent = '';
+
+  if(!name || !email || !phone || !pass){ err.textContent = 'All fields are required.'; return; }
+  if(!validEmail(email)){ err.textContent = 'Please enter a valid email.'; return; }
+  if(!validPhone(phone)){ err.textContent = 'Enter a valid phone (7-15 digits, optional +).' ; return; }
+  if(pass.length < 6){ err.textContent = 'Password must be at least 6 characters.'; return; }
+  if(pass !== pass2){ err.textContent = 'Passwords do not match.'; return; }
+  if(users.find(u=>u.email === email)){ err.textContent = 'An account with that email exists.'; return; }
+
+  users.push({name,email,phone,password:pass});
+  save('users', users);
+  $('#regError').textContent = 'Account created — logging you in...';
+  setTimeout(()=>{ loginUser(email); closeAuth(); }, 500);
+});
+
+/* Login */
+$('#loginForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  const email = $('#loginEmail').value.trim().toLowerCase();
+  const pass = $('#loginPassword').value;
+  const users = load('users', []);
+  const u = users.find(x => x.email === email && x.password === pass);
+  if(!u){ $('#loginError').textContent = 'Invalid credentials.'; return; }
+  $('#loginError').textContent = '';
+  loginUser(email); closeAuth();
+});
+
+function loginUser(email){
+  const users = load('users',[]);
+  const u = users.find(x => x.email === email);
+  if(!u) return;
+  save('currentUser', {email:u.email, name:u.name});
+  updateUIForUser();
+}
+function logout(){
+  localStorage.removeItem('currentUser');
+  updateUIForUser();
+}
+function updateUIForUser(){
+  const cur = load('currentUser', null);
+  if(cur){
+    $('#userGreeting').textContent = 'Hi, ' + cur.name;
+    $('#btn-login').textContent = 'Logout';
+    $('#btn-login').onclick = ()=>logout();
+  } else {
+    $('#userGreeting').textContent = '';
+    $('#btn-login').textContent = 'Login / Register';
+    $('#btn-login').onclick = ()=>openAuth('login');
+  }
+  renderFeatured(); renderProducts(); renderOrders(); renderWishlist();
+}
+updateUIForUser();
+
+/* -------------------- Products, Wishlist, Orders, Reviews -------------------- */
+function renderFeatured(){
+  const products = load('products',[]);
+  const container = $('#featured'); container.innerHTML = '';
+  products.slice(0,3).forEach(p => container.appendChild(createProductCard(p,false)));
+}
+function renderProducts(){
+  const products = load('products',[]);
+  const container = $('#productList'); container.innerHTML = '';
+  products.forEach(p => container.appendChild(createProductCard(p,true)));
+}
+
+function createProductCard(p, showFull){
+  const div = document.createElement('div'); div.className = 'card';
+  const img = document.createElement('div'); img.className = 'product-img'; img.textContent = p.title;
+  const title = document.createElement('div'); title.innerHTML = `<strong>${p.title}</strong>`;
+  const desc = document.createElement('div'); desc.className = 'muted small'; desc.textContent = p.desc;
+  const price = document.createElement('div'); price.style.marginTop = '8px'; price.innerHTML = `<strong>INR ${p.price.toLocaleString()}</strong>`;
+
+  const buttons = document.createElement('div'); buttons.style.marginTop = '10px';
+  buttons.style.display = 'flex'; buttons.style.gap = '8px';
+  const btnWish = document.createElement('button'); btnWish.textContent = 'Add to Wishlist'; btnWish.onclick = ()=>toggleWishlist(p.id);
+  const btnOrder = document.createElement('button'); btnOrder.textContent = 'Buy Now'; btnOrder.onclick = ()=>placeOrder(p.id);
+  buttons.appendChild(btnWish); buttons.appendChild(btnOrder);
+
+  // reviews area
+  const revWrap = document.createElement('div'); revWrap.className = 'reviews';
+  const revTitle = document.createElement('div'); revTitle.innerHTML = '<strong>Reviews</strong>';
+  revWrap.appendChild(revTitle);
+  const reviews = load('reviews', {});
+  (reviews[p.id] || []).forEach(r => {
+    const rdiv = document.createElement('div'); rdiv.className = 'review';
+    rdiv.innerHTML = `<div style="font-weight:700">${r.user}</div><div class="muted small">${r.date} • Rating: ${r.rating}/5</div><div style="margin-top:6px">${r.text}</div>`;
+    revWrap.appendChild(rdiv);
+  });
+  const addRevBtn = document.createElement('div'); addRevBtn.className = 'link'; addRevBtn.textContent = 'Add review'; addRevBtn.onclick = ()=>showReviewForm(p.id);
+  revWrap.appendChild(addRevBtn);
+
+  div.appendChild(img); div.appendChild(title); div.appendChild(desc); div.appendChild(price); div.appendChild(buttons); div.appendChild(revWrap);
+  return div;
+}
+
+function showReviewForm(productId){
+  const cur = load('currentUser', null);
+  if(!cur){ alert('Please login to add a review.'); openAuth('login'); return; }
+  const txt = prompt('Write your review (max 300 chars):');
+  if(!txt) return;
+  const rating = prompt('Rating 1-5:', '5');
+  const r = parseInt(rating) || 5;
+  if(r < 1 || r > 5){ alert('Invalid rating'); return; }
+  const reviews = load('reviews', {});
+  if(!reviews[productId]) reviews[productId] = [];
+  reviews[productId].unshift({ user: cur.name, rating: r, text: txt.slice(0,300), date: new Date().toLocaleString() });
+  save('reviews', reviews); renderProducts(); renderFeatured();
+}
+
+function toggleWishlist(productId){
+  const cur = load('currentUser', null);
+  if(!cur){ alert('Please login to manage wishlist.'); openAuth('login'); return; }
+  const w = load('wishlist', {});
+  const arr = w[cur.email] || [];
+  const idx = arr.indexOf(productId);
+  if(idx === -1){ arr.push(productId); alert('Added to wishlist'); } else { arr.splice(idx,1); alert('Removed from wishlist'); }
+  w[cur.email] = arr; save('wishlist', w); renderWishlist();
+}
+
+function placeOrder(productId){
+  const cur = load('currentUser', null);
+  if(!cur){ alert('Please login to place an order.'); openAuth('login'); return; }
+  const orders = load('orders', []);
+  const id = 'O' + Math.floor(Math.random() * 900000 + 100000);
+  const prod = (load('products', []).find(x => x.id === productId));
+  orders.unshift({ orderId: id, user: cur.email, productId: productId, productTitle: prod.title, price: prod.price, date: new Date().toLocaleString(), status: 'Processing' });
+  save('orders', orders); alert('Order placed: ' + id); renderOrders();
+}
+
+function renderOrders(){
+  const cur = load('currentUser', null);
+  const container = $('#ordersList'); container.innerHTML = '';
+  if(!cur){ container.innerHTML = '<div class="empty">Please login to view your orders.</div>'; return; }
+  const orders = load('orders', []).filter(o => o.user === cur.email);
+  if(orders.length === 0){ container.innerHTML = '<div class="empty">You have no orders yet.</div>'; return; }
+  orders.forEach(o => {
+    const c = document.createElement('div'); c.className = 'card';
+    c.innerHTML = `<div style="display:flex;justify-content:space-between">
+      <div><strong>${o.productTitle}</strong><div class="muted small">Order: ${o.orderId} • ${o.date}</div></div>
+      <div style="text-align:right"><div><strong>INR ${o.price.toLocaleString()}</strong></div><div class="muted small">Status: ${o.status}</div></div>
+      </div>`;
+    container.appendChild(c);
+  });
+}
+
+function renderWishlist(){
+  const cur = load('currentUser', null);
+  const container = $('#wishlistList'); container.innerHTML = '';
+  if(!cur){ container.innerHTML = '<div class="empty">Please login to view your wishlist.</div>'; return; }
+  const w = load('wishlist', {});
+  const arr = w[cur.email] || [];
+  if(arr.length === 0){ container.innerHTML = '<div class="empty">Wishlist is empty.</div>'; return; }
+  arr.forEach(pid => {
+    const prod = load('products', []).find(x => x.id === pid);
+    const c = document.createElement('div'); c.className = 'card';
+    c.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center">
+      <div><strong>${prod.title}</strong><div class="muted small">${prod.desc}</div></div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+        <div><strong>INR ${prod.price.toLocaleString()}</strong></div>
+        <div style="display:flex;gap:8px"><button onclick="placeOrder('${prod.id}')">Buy</button><button onclick="toggleWishlist('${prod.id}')">Remove</button></div>
+      </div></div>`;
+    container.appendChild(c);
+  });
+}
+
+/* expose for inline onclicks */
+window.placeOrder = placeOrder; window.toggleWishlist = toggleWishlist;
+
+/* -------------------- Contact & Report forms -------------------- */
+$('#contactForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  const name = $('#contactName').value.trim(), email = $('#contactEmail').value.trim(), msg = $('#contactMsg').value.trim();
+  if(!name || !email || !msg){ $('#contactStatus').textContent = 'All fields required'; return; }
+  if(!validEmail(email)){ $('#contactStatus').textContent = 'Invalid email'; return; }
+  const msgs = load('contacts', []); msgs.unshift({ name, email, msg, date: new Date().toLocaleString() }); save('contacts', msgs);
+  $('#contactStatus').textContent = 'Sent — our team will reply soon.'; setTimeout(()=>$('#contactStatus').textContent='', 3000);
+  $('#contactForm').reset();
+});
+
+$('#reportForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  const type = $('#reportType').value, ref = $('#reportRef').value.trim(), details = $('#reportDetails').value.trim();
+  if(!details){ $('#reportStatus').textContent = 'Details required'; return; }
+  const reports = load('reports', []); reports.unshift({ type, ref, details, date: new Date().toLocaleString(), user: (load('currentUser')||{}).email || null }); save('reports', reports);
+  $('#reportStatus').textContent = 'Report submitted'; setTimeout(()=>$('#reportStatus').textContent='', 3000);
+  $('#reportForm').reset();
+});
+
+/* -------------------- Initial render & demo user -------------------- */
+renderFeatured(); renderProducts();
+if(load('users', []).length === 0){
+  save('users',[{name:'Demo User', email:'demo@example.com', phone:'+911234567890', password:'demopass'}]);
+}
+
+/* keyboard accessibility: close modal on Esc */
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeAuth(); });
+
+</script>
+</body>
+</html>
